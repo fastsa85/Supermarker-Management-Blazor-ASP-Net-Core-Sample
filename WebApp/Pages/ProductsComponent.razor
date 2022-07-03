@@ -1,0 +1,69 @@
+﻿@page "/products"
+@attribute [Authorize(Policy = "AdminOnly")]
+
+@inject NavigationManager NavigationManager
+@inject IViewProductsUseCase ViewProductsUseCase
+@inject IGetCategoryByIdUseCase GetCategoryByIdUseCase
+@inject IDeleteProductUseCase DeleteProductUseCase
+
+<h3>Products</h3>
+
+@if (products != null)
+{
+        <table class="table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th></th>
+            </tr>            
+        </thead>
+        <tbody>
+            @foreach(var product in products)
+            {
+                <tr>
+                    <td>@GetCategoryByIdUseCase.Execute(product.CategoryId.Value)?.Name</td>
+                    <td>@product.Name</td>
+                    <td>@product.Price.Value</td>
+                    <td>@product.Quantity.Value</td>
+                    <td>
+                        <button type="button" class="btn btn-link" @onclick="() => OnClickEditProduct(product)">Edit</button>
+                        <button type="button" class="btn btn-link" @onclick="() => OnClickDeleteProduct(product)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br/>
+<button type="button" @onclick="OnClickAddProduct" class="btn btn-primary">Add Product</button>
+
+
+@code {
+    private IEnumerable<Product> products;
+
+    private void OnClickEditProduct(Product product)
+    {
+        NavigationManager.NavigateTo($"/editproduct/{product.ProductId}");
+    }
+
+    private void OnClickDeleteProduct(Product product)
+    {
+        DeleteProductUseCase.Execute(product.ProductId);
+    }
+
+    private void OnClickAddProduct()
+    {
+        NavigationManager.NavigateTo("/addproduct");
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        products = ViewProductsUseCase.Execute();
+    }
+}
